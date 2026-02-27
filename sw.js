@@ -1,17 +1,18 @@
 // =========================================================
-// KÓDEX PWA ENGINE - Service Worker de Alta Resiliência (Mobile)
+// KÓDEX PWA ENGINE - Service Worker V8 (Simetria Absoluta)
 // =========================================================
 
-// Subimos para v7 para forçar os telemóveis a atualizarem o cofre
-const CACHE_NAME = 'makena-pro-v7';
+// Subimos para v8 para forçar os telemóveis a atualizarem a matriz
+const CACHE_NAME = 'makena-pro-v8';
 
-// 1. O NÚCLEO VITAL (Deve ser guardado primeiro para garantir o arranque)
+// 1. NÚCLEO VITAL (Cobre todas as variações de URL de arranque do telemóvel)
 const CORE_ASSETS = [
-  '/',
-  '/index.html'
+  './',
+  './index.html',
+  '/'
 ];
 
-// 2. OS MOTORES EXTERNOS (Guardados em segundo plano)
+// 2. MOTORES EXTERNOS (Buscados com permissões de Alta Fidelidade)
 const CDN_ASSETS = [
   'https://unpkg.com/react@18/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
@@ -24,22 +25,23 @@ self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async cache => {
-      console.log('KÓDEX: Selando o núcleo vital da Academia Makena...');
+      console.log('KÓDEX: Selando o núcleo vital e rotas de arranque...');
       
-      // Garante que o index.html é salvo. Se isto falhar, a app não instala (o que é correto e seguro).
-      await cache.addAll(CORE_ASSETS);
+      // Evita falhar toda a instalação se o telemóvel estranhar uma das rotas
+      for (let asset of CORE_ASSETS) {
+        try { await cache.add(asset); } catch(e) {}
+      }
       
-      console.log('KÓDEX: Puxando os motores externos de renderização...');
-      // Tenta guardar os CDNs individualmente. Se um telemóvel falhar num, não destrói o resto do cofre.
+      console.log('KÓDEX: Puxando os motores externos em estado puro...');
       for (let asset of CDN_ASSETS) {
         try {
-          const req = new Request(asset, { mode: 'no-cors' });
-          const res = await fetch(req);
-          if (res) {
-            await cache.put(req, res);
+          // O fetch puro liberta o bloqueio opaco, permitindo que o React corra offline
+          const res = await fetch(asset);
+          if (res.ok) {
+            await cache.put(asset, res.clone());
           }
         } catch (e) {
-          console.warn('KÓDEX Aviso: O telemóvel não conseguiu guardar o motor:', asset);
+          console.warn('KÓDEX Aviso: O telemóvel não conseguiu pré-carregar:', asset);
         }
       }
     })
@@ -62,24 +64,33 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// O NEXO AFROKÓDICO: Interceção de Pedidos Mobile
+// O NEXO AFROKÓDICO: Interceção Híbrida e Caching em Tempo Real
 self.addEventListener('fetch', event => {
-  // Ignora requisições que não sejam GET (como envio de formulários externos)
+  // Ignora requisições que não sejam leitura (GET)
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      // 1. Se encontrou no cofre (no telemóvel), devolve imediatamente.
+    caches.match(event.request, { ignoreSearch: true }).then(cachedResponse => {
+      // 1. Se está no cofre (offline), devolve com velocidade máxima
       if (cachedResponse) {
         return cachedResponse;
       }
       
-      // 2. Se não está no cofre, vai buscar à internet silenciosamente.
-      return fetch(event.request).catch(() => {
-        // 3. A MAGIA MOBILE: Se falhar (sem internet) e for um pedido de abertura de página (navigate)...
+      // 2. Se não está no cofre, busca na internet E GUARDA IMEDIATAMENTE (Runtime Caching)
+      return fetch(event.request).then(networkResponse => {
+        // Se a resposta for válida, faz uma cópia para o cofre para o futuro
+        if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
+           const responseToCache = networkResponse.clone();
+           caches.open(CACHE_NAME).then(cache => {
+             cache.put(event.request, responseToCache);
+           });
+        }
+        return networkResponse;
+      }).catch(() => {
+        // 3. FALHA DE REDE ABSOLUTA (Sem internet e ficheiro não guardado)
+        // Se o telemóvel pedir a aplicação pelo ecrã inicial, obriga a abrir o núcleo
         if (event.request.mode === 'navigate' || event.request.headers.get('accept').includes('text/html')) {
-           // ...força o telemóvel a abrir o index.html guardado, ignorando erros da operadora.
-           return caches.match('/index.html');
+           return caches.match('./index.html') || caches.match('/');
         }
       });
     })
