@@ -7,7 +7,7 @@
     
     <!-- =========================================================
          KÓDEX: PWA ENGINE (PROGRESSIVE WEB APP)
-         Permite instalação nativa (Add to Home Screen)
+         Permite instalação nativa e Paridade Offline Absoluta
          ========================================================= -->
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,14 +37,14 @@
         document.head.appendChild(link);
 
         // =========================================================
-        // KÓDEX MEC-SHIELD: Adequação à Matriz de Segurança
-        // Navegadores bloqueiam Service Workers gerados por 'blob:'.
-        // O sistema agora buscará um arquivo 'sw.js' quando estiver online.
+        // KÓDEX MEC-SHIELD V5: Ligação ao Motor Offline (sw.js)
         // =========================================================
-        if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(() => {
-                    console.log("KÓDEX: Escudo PWA aguardando arquivo 'sw.js' no servidor para habilitar a Instalação Nativa.");
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log("KÓDEX: Motor de Sobrevivência PWA ativado com sucesso.");
+                }).catch(() => {
+                    console.log("KÓDEX: Escudo aguardando sw.js no servidor.");
                 });
             });
         }
@@ -58,7 +58,7 @@
         });
     </script>
 
-    <!-- MOTORES DE RENDERIZAÇÃO (CDNs de Alta Fidelidade) -->
+    <!-- MOTORES DE RENDERIZAÇÃO (Agora salvos no telemóvel pelo sw.js) -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -103,63 +103,33 @@
         .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 6rem); }
         @media (min-width: 768px) { .pb-safe { padding-bottom: 2rem; } }
 
-        /* =========================================================
-           KÓDEX MEC-SHIELD V4: ESPELHO VISUAL NATIVO (OFFLINE)
-           Garante que a interface permaneça idêntica sem Tailwind
-           ========================================================= */
+        /* Estilos do Espelho mantidos como Failsafe Catastrófico */
         .mirror-layout { display: flex; flex-direction: column; min-height: 100vh; background: #faf9ff; font-family: 'Poppins', sans-serif; }
         .mirror-sidebar { display: none; width: 256px; background: #0f172a; flex-direction: column; align-items: center; padding: 3rem 0; color: white; position: fixed; height: 100vh; left: 0; top: 0; z-index: 50; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
         @media (min-width: 768px) { .mirror-layout { flex-direction: row; } .mirror-sidebar { display: flex; } .mirror-main { margin-left: 256px; } }
         .mirror-main { flex: 1; padding: 1rem; box-sizing: border-box; width: 100%; }
         @media (min-width: 768px) { .mirror-main { padding: 3rem; } }
-        
         .mirror-avatar { width: 64px; height: 64px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #D4AF37; margin-bottom: 4rem; color: #0f172a; font-weight: 900; font-size: 1.5rem; font-family: 'Outfit'; }
         .mirror-nav-item { width: 85%; padding: 1rem; border-radius: 1rem; color: #94a3b8; font-weight: 900; text-transform: uppercase; font-size: 11px; letter-spacing: 2px; border: none; background: transparent; display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-bottom: 0.5rem; transition: 0.3s; }
         .mirror-nav-item.active { background: #D4AF37; color: #0f172a; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        
         .mirror-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
         .mirror-card { background: white; border-radius: 3rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; cursor: pointer; transition: transform 0.3s; display: flex; flex-direction: column; }
-        .mirror-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         .mirror-card-img-container { width: 100%; height: 250px; background: #e2e8f0; position: relative; }
         .mirror-card-tag { position: absolute; top: 1.5rem; left: 1.5rem; background: rgba(255,255,255,0.95); padding: 0.3rem 1rem; border-radius: 2rem; font-size: 9px; font-weight: 900; text-transform: uppercase; color: #4c1d95; letter-spacing: 2px; }
         .mirror-card-body { padding: 2rem; text-align: center; }
         .mirror-card-title { font-size: 1.5rem; font-weight: 900; color: #0f172a; text-transform: uppercase; font-family: 'Outfit'; margin: 0 0 1rem 0; line-height: 1.1; }
-        
         .mirror-detail-card { background: white; border-radius: 3rem; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; max-width: 1000px; margin: 0 auto; margin-bottom: 2rem;}
         @media (min-width: 768px) { .mirror-detail-card { padding: 3.5rem; border-radius: 4rem; } }
         .mirror-back-btn { background: #f3e8ff; color: #7e22ce; border: none; padding: 0.5rem 1.5rem; border-radius: 2rem; font-weight: 900; text-transform: uppercase; font-size: 10px; letter-spacing: 2px; cursor: pointer; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; }
-        
         .mirror-flex-cols { display: flex; flex-direction: column; gap: 2.5rem; }
         @media (min-width: 1024px) { .mirror-flex-cols { flex-direction: row; } .mirror-col-half { flex: 1; } }
         .mirror-title-large { font-size: 2.5rem; font-weight: 900; color: #0f172a; text-transform: uppercase; font-family: 'Outfit'; margin: 0 0 2rem 0; line-height: 1; }
-        @media (min-width: 768px) { .mirror-title-large { font-size: 3rem; } }
-        
         .mirror-info-box { background: #f8fafc; padding: 2rem; border-radius: 2.5rem; border: 1px solid #f1f5f9; margin-bottom: 2rem; }
         .mirror-info-title { font-weight: 900; color: #7e22ce; text-transform: uppercase; font-size: 12px; letter-spacing: 2px; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; }
         .mirror-info-text { color: #334155; line-height: 1.8; font-weight: 300; font-size: 1.1rem; margin: 0; }
         .mirror-control-box { background: #fefce8; border-left: 4px solid #eab308; padding: 1.5rem; border-radius: 0 1.5rem 1.5rem 0; margin-top: 1.5rem; }
         .mirror-control-title { color: #854d0e; font-weight: 900; text-transform: uppercase; font-size: 10px; letter-spacing: 2px; margin: 0 0 0.5rem 0; }
         .mirror-control-text { color: #713f12; margin: 0; font-size: 0.9rem; font-weight: 500; }
-        
-        /* Diário Mirror */
-        .mirror-header-flex { display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem; }
-        .mirror-header-icon { background: #dcfce7; color: #16a34a; padding: 1.25rem; border-radius: 2rem; }
-        .mirror-input-group { margin-bottom: 1.5rem; }
-        .mirror-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 5px; color: #cbd5e1; margin-left: 2rem; display: block; margin-bottom: 0.5rem; }
-        .mirror-input { width: 100%; padding: 2rem; background: #f8fafc; border-radius: 2.5rem; border: 2px solid transparent; font-family: 'Poppins'; font-size: 1.25rem; font-weight: 900; box-sizing: border-box; outline: none; transition: 0.3s; }
-        .mirror-textarea { width: 100%; padding: 2rem; background: #f8fafc; border-radius: 2.5rem; border: 2px solid transparent; font-family: 'Poppins'; font-size: 1.1rem; font-weight: 300; min-height: 250px; resize: none; box-sizing: border-box; outline: none; transition: 0.3s; line-height: 1.8; }
-        .mirror-input:focus, .mirror-textarea:focus { border-color: #e9d5ff; background: white; }
-        .mirror-btn-save { width: 100%; background: #0f172a; color: white; padding: 2rem; border-radius: 3rem; font-weight: 900; text-transform: uppercase; letter-spacing: 4px; font-size: 12px; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 1rem; transition: 0.3s; margin-top: 1rem; }
-        .mirror-btn-save:hover { background: #581c87; }
-        
-        .mirror-history-title { font-weight: 900; color: #0f172a; text-transform: uppercase; font-size: 10px; letter-spacing: 5px; display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding: 0 2rem; }
-        .mirror-dot { width: 12px; height: 12px; background: #eab308; border-radius: 50%; box-shadow: 0 0 10px #eab308; }
-        .mirror-note-card { background: white; padding: 2.5rem; border-radius: 3rem; border: 1px solid #f1f5f9; margin-bottom: 1.5rem; position: relative; }
-        .mirror-note-title { font-weight: 900; color: #0f172a; font-size: 1.25rem; text-transform: uppercase; margin: 0 0 1rem 0; }
-        .mirror-note-content { color: #64748b; font-weight: 300; line-height: 1.8; margin: 0; white-space: pre-wrap; font-style: italic; }
-        .mirror-delete-btn { position: absolute; top: 2rem; right: 2rem; background: transparent; border: none; color: #fecaca; cursor: pointer; transition: 0.3s; }
-        .mirror-delete-btn:hover { color: #dc2626; }
-
         .mirror-banner { background: #0f172a; border-radius: 3rem; padding: 4rem; color: white; text-align: center; margin-bottom: 2rem; position: relative; overflow: hidden; }
         .mirror-banner h1 { font-family: 'Outfit'; font-size: 4rem; text-transform: uppercase; font-weight: 900; margin: 0; color: #D4AF37; }
         .mirror-banner p { font-size: 1.5rem; color: #cbd5e1; margin-top: 1rem; }
@@ -174,7 +144,7 @@
         </div>
     </div>
 
-    <!-- SOBERANIA DE DADOS: Base de Dados Imutável com Textos Fiéis ao Original -->
+    <!-- SOBERANIA DE DADOS: Base de Dados Imutável com a Nova Receita -->
     <script>
         window.MAKENA_RECIPES = [
             { 
@@ -239,7 +209,6 @@
             }
         ];
 
-        // Componente SVG Dinâmico para Offline e Online
         window.getIconSVG = function(name, size=24, color="currentColor") {
             const icons = {
                 ChefHat: '<path d="M6 13.8V19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-5.2M18 10V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6M3 10h18M22 10c0-2.2-1.8-4-4-4M2 10c0-2.2 1.8-4 4-4" />',
@@ -259,244 +228,20 @@
         };
     </script>
 
-    <!-- =========================================================================
-         MEC-SHIELD NÍVEL 4: ESPELHAMENTO SIMÉTRICO (OFFLINE COMPLETADO)
-         ========================================================================= -->
+    <!-- Failsafe Catastrófico -->
     <script>
         window.addEventListener('load', function() {
+            // Se o sw.js falhar em carregar as bibliotecas, o sistema não mostrará tela branca.
             if (typeof React === 'undefined' || typeof Babel === 'undefined' || typeof tailwind === 'undefined') {
-                console.warn("KÓDEX MEC-SHIELD Ativado: Desenhando Espelho Visual Offline Completo.");
-                
+                console.warn("KÓDEX: Cache de CDNs falhou, acionando Espelho de Emergência.");
                 const root = document.getElementById('root');
-                window.offlineTab = 'dashboard';
-                window.selectedRecipe = null;
-
-                window.renderOfflineApp = function() {
-                    let mainContent = '';
-
-                    if (window.selectedRecipe) {
-                        const r = window.selectedRecipe;
-                        mainContent = `
-                            <div class="mirror-detail-card page-enter">
-                                <button class="mirror-back-btn" onclick="window.selectedRecipe = null; renderOfflineApp();">
-                                    ${getIconSVG('ArrowLeft', 16)} Voltar
-                                </button>
-                                <div class="mirror-flex-cols">
-                                    <div class="mirror-col-half">
-                                        <div class="mirror-card-img-container" style="border-radius: 2.5rem; height: 350px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-                                            <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#e2e8f0; color:#94a3b8;">
-                                                ${getIconSVG('ChefHat', 48)}
-                                                <span style="font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px;">Imagem Offline</span>
-                                            </div>
-                                            <div class="mirror-card-tag" style="top: 1rem; left: 1rem;">${r.category}</div>
-                                        </div>
-                                    </div>
-                                    <div class="mirror-col-half">
-                                        <h1 class="mirror-title-large">${r.title}</h1>
-                                        <div class="mirror-info-box">
-                                            <h4 class="mirror-info-title">${getIconSVG('Utensils', 18)} Ingredientes</h4>
-                                            <p class="mirror-info-text">${r.ingredients}</p>
-                                        </div>
-                                        <div>
-                                            <h4 class="mirror-info-title" style="color: #0f172a; border-color: #f1f5f9;">Preparo do Mini Chef</h4>
-                                            <p class="mirror-info-text">${r.prep}</p>
-                                        </div>
-                                        ${r.control ? `
-                                        <div class="mirror-control-box">
-                                            <h4 class="mirror-control-title">Nota do Chef</h4>
-                                            <p class="mirror-control-text">${r.control}</p>
-                                        </div>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    } else if (window.offlineTab === 'dashboard') {
-                        mainContent = `
-                            <div class="page-enter">
-                                <div class="mirror-banner">
-                                    <span style="background: #D4AF37; color: #0f172a; font-size: 11px; font-weight: 900; padding: 5px 15px; border-radius: 20px; text-transform: uppercase; letter-spacing: 2px;">Espaço Formativo Digital</span>
-                                    <h1 style="margin-top: 20px;">Arte & Sabor</h1>
-                                    <p style="font-weight: bold; text-transform: uppercase; letter-spacing: 4px; color: #D4AF37;">Makena Space (Modo Offline)</p>
-                                </div>
-                                <div class="mirror-detail-card text-center" style="text-align: center;">
-                                    <h2 class="mirror-title-large" style="margin-bottom: 1rem;">Relatório aos Encarregados</h2>
-                                    <p class="mirror-info-text" style="font-style: italic; margin-bottom: 3rem;">"O desenvolvimento na Academia Makena Space transcende a cozinha. É sobre construir caráter e competência."</p>
-                                    
-                                    <div class="mirror-flex-cols" style="text-align: left;">
-                                        <div class="mirror-info-box">
-                                            <h4 class="mirror-info-title" style="color: #0f172a;">${getIconSVG('BarChart3', 20)} Comportamental</h4>
-                                            <p class="mirror-info-text" style="margin-top: 1rem;"><strong>Autonomia:</strong> Gestão de processos do início ao fim.</p>
-                                            <p class="mirror-info-text" style="margin-top: 0.5rem;"><strong>Disciplina:</strong> Noções de higiene e gestão de tempo.</p>
-                                            <p style="font-size: 10px; color: #94a3b8; margin-top: 1rem;">*Gráficos visuais requerem conexão ativa.</p>
-                                        </div>
-                                        <div class="mirror-info-box">
-                                            <h4 class="mirror-info-title" style="color: #0f172a;">${getIconSVG('CheckCircle2', 20)} Ganhos Académicos</h4>
-                                            <p class="mirror-info-text" style="margin-top: 1rem;"><strong>Matemática:</strong> Trabalho com medidas e pesos.</p>
-                                            <p class="mirror-info-text" style="margin-top: 0.5rem;"><strong>Ciência:</strong> Transformações físicas e químicas.</p>
-                                            <p style="font-size: 10px; color: #94a3b8; margin-top: 1rem;">*Gráficos visuais requerem conexão ativa.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    } else if (window.offlineTab === 'recipes') {
-                        mainContent = `
-                            <div class="mirror-grid page-enter">
-                                ${window.MAKENA_RECIPES.map((r, i) => `
-                                    <div class="mirror-card" onclick="window.selectedRecipe = window.MAKENA_RECIPES[${i}]; renderOfflineApp();">
-                                        <div class="mirror-card-img-container">
-                                            <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#94a3b8;">
-                                                ${getIconSVG('ChefHat', 32)} <span style="font-size: 8px; font-weight: 900; text-transform: uppercase; margin-top: 5px;">Offline</span>
-                                            </div>
-                                            <div class="mirror-card-tag">${r.category}</div>
-                                        </div>
-                                        <div class="mirror-card-body">
-                                            <h3 class="mirror-card-title">${r.title}</h3>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
-                    } else if (window.offlineTab === 'etiquette') {
-                        mainContent = `
-                            <div class="mirror-detail-card page-enter">
-                                <h2 class="mirror-title-large">Culinária com o <span style="color: #6B21A8;">Mini Chef</span></h2>
-                                <p class="mirror-info-text" style="margin-bottom: 3rem;">Este bloco é o teu guia oficial. Focamos na competência prática, organização, higiene e criatividade.</p>
-                                
-                                <div class="mirror-info-box">
-                                    <h3 class="mirror-info-title" style="font-size: 18px; color: #0f172a;">Etiqueta e Talheres</h3>
-                                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                                        <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; flex: 1; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                            <h5 style="margin: 0; font-weight: 900; text-transform: uppercase; font-size: 10px; color: #6B21A8;">A Comer</h5>
-                                            <p style="font-size: 12px; margin-top: 10px;">Talheres em V invertido</p>
-                                        </div>
-                                        <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; flex: 1; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                            <h5 style="margin: 0; font-weight: 900; text-transform: uppercase; font-size: 10px; color: #6B21A8;">Pausa</h5>
-                                            <p style="font-size: 12px; margin-top: 10px;">Talheres cruzados no centro</p>
-                                        </div>
-                                        <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; flex: 1; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                            <h5 style="margin: 0; font-weight: 900; text-transform: uppercase; font-size: 10px; color: #6B21A8;">Terminei</h5>
-                                            <p style="font-size: 12px; margin-top: 10px;">Talheres paralelos</p>
-                                        </div>
-                                    </div>
-                                    <p class="mirror-info-text" style="margin-top: 2rem; font-size: 14px;"><strong>Mesa Posta:</strong> Prato ao centro. Garfo à esquerda. Faca à direita. Colher à direita da faca. Copo acima da faca.</p>
-                                </div>
-                            </div>
-                        `;
-                    } else if (window.offlineTab === 'about') {
-                        mainContent = `
-                            <div class="mirror-detail-card page-enter">
-                                <span style="color: #d97706; font-weight: 900; text-transform: uppercase; font-size: 11px; letter-spacing: 4px;">A Nossa Essência</span>
-                                <h2 class="mirror-title-large" style="margin-top: 1rem;">Mais do que culinária, <br/><span style="color: #6B21A8;">um laboratório de vida.</span></h2>
-                                <p class="mirror-info-text" style="margin-top: 1.5rem; margin-bottom: 3rem;">Na Academia Makena Space, acreditamos que a cozinha é o ambiente perfeito para moldar o futuro. Transformamos ingredientes em pratos deliciosos e desafios em competências vitais.</p>
-                                
-                                <div class="mirror-flex-cols">
-                                    <div class="mirror-info-box">
-                                        <div style="background: white; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #6B21A8; margin-bottom: 1rem;">${getIconSVG('Star', 24)}</div>
-                                        <h4 class="mirror-info-title" style="color: #0f172a;">Missão</h4>
-                                        <p class="mirror-info-text" style="font-size: 14px;">Desenvolver competências comportamentais, autonomia e inteligência emocional através da arte gastronómica.</p>
-                                    </div>
-                                    <div class="mirror-info-box">
-                                        <div style="background: white; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #d97706; margin-bottom: 1rem;">${getIconSVG('CheckCircle2', 24)}</div>
-                                        <h4 class="mirror-info-title" style="color: #0f172a;">Visão</h4>
-                                        <p class="mirror-info-text" style="font-size: 14px;">Ser a referência na formação integral de excelência em Angola, unindo educação prática, rigor e nutrição saudável.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    } else if (window.offlineTab === 'diary') {
-                        let notes = [];
-                        try { notes = JSON.parse(localStorage.getItem('makena_pro_notes_final')) || []; } catch(e) {}
-                        
-                        mainContent = `
-                            <div class="mirror-flex-cols page-enter">
-                                <div style="flex: 2; background: white; padding: 4rem; border-radius: 4rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid #f1f5f9;">
-                                    <div class="mirror-header-flex">
-                                        <div class="mirror-header-icon">${getIconSVG('Plus', 32)}</div>
-                                        <h2 class="mirror-title-large" style="margin: 0;">Diário</h2>
-                                    </div>
-                                    <div class="mirror-input-group">
-                                        <label class="mirror-label">Título da Memória</label>
-                                        <input type="text" id="off_title" class="mirror-input" placeholder="...">
-                                    </div>
-                                    <div class="mirror-input-group">
-                                        <label class="mirror-label">Conteúdo da Descoberta</label>
-                                        <textarea id="off_content" class="mirror-textarea" placeholder="O que aprendeste hoje?"></textarea>
-                                    </div>
-                                    <button class="mirror-btn-save" onclick="saveOfflineNote()">
-                                        ${getIconSVG('Save', 24)} Guardar Localmente
-                                    </button>
-                                </div>
-                                <div style="flex: 1;">
-                                    <h3 class="mirror-history-title"><div class="mirror-dot"></div> Histórico Offline</h3>
-                                    <div id="mirror-notes-list">
-                                        ${notes.map(n => `
-                                            <div class="mirror-note-card">
-                                                <h4 class="mirror-note-title">${n.title}</h4>
-                                                <p class="mirror-note-content">${n.content}</p>
-                                                <button class="mirror-delete-btn" onclick="deleteOfflineNote(${n.id})">${getIconSVG('Trash2', 20)}</button>
-                                            </div>
-                                        `).join('')}
-                                        ${notes.length === 0 ? '<div style="padding: 2rem; text-align: center; color: #cbd5e1; border: 2px dashed #f1f5f9; border-radius: 2rem; font-size: 0.9rem;">Nenhuma memória registada.</div>' : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-
-                    root.innerHTML = `
-                        <div class="mirror-layout">
-                            <aside class="mirror-sidebar">
-                                <div class="mirror-avatar">MS</div>
-                                <button class="mirror-nav-item ${window.offlineTab === 'dashboard' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='dashboard'; window.selectedRecipe=null; renderOfflineApp();">
-                                    ${getIconSVG('BarChart3', 22)} Painel
-                                </button>
-                                <button class="mirror-nav-item ${window.offlineTab === 'recipes' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='recipes'; window.selectedRecipe=null; renderOfflineApp();">
-                                    ${getIconSVG('ChefHat', 22)} Receitas
-                                </button>
-                                <button class="mirror-nav-item ${window.offlineTab === 'etiquette' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='etiquette'; window.selectedRecipe=null; renderOfflineApp();">
-                                    ${getIconSVG('Utensils', 22)} Etiqueta
-                                </button>
-                                <button class="mirror-nav-item ${window.offlineTab === 'about' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='about'; window.selectedRecipe=null; renderOfflineApp();">
-                                    ${getIconSVG('Info', 22)} Sobre
-                                </button>
-                                <button class="mirror-nav-item ${window.offlineTab === 'diary' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='diary'; window.selectedRecipe=null; renderOfflineApp();">
-                                    ${getIconSVG('Plus', 22)} Diário
-                                </button>
-                            </aside>
-                            <main class="mirror-main">
-                                ${mainContent}
-                            </main>
-                        </div>
-                    `;
-                };
-
-                window.saveOfflineNote = function() {
-                    const title = document.getElementById('off_title').value;
-                    const contentTxt = document.getElementById('off_content').value;
-                    if (!title || !contentTxt) return;
-                    let notes = [];
-                    try { notes = JSON.parse(localStorage.getItem('makena_pro_notes_final')) || []; } catch(e) {}
-                    notes.unshift({ id: Date.now(), title: title, content: contentTxt });
-                    localStorage.setItem('makena_pro_notes_final', JSON.stringify(notes));
-                    renderOfflineApp();
-                };
-
-                window.deleteOfflineNote = function(id) {
-                    let notes = [];
-                    try { notes = JSON.parse(localStorage.getItem('makena_pro_notes_final')) || []; } catch(e) {}
-                    notes = notes.filter(n => n.id !== id);
-                    localStorage.setItem('makena_pro_notes_final', JSON.stringify(notes));
-                    renderOfflineApp();
-                };
-
-                renderOfflineApp();
+                root.innerHTML = `<div class="mirror-layout"><main class="mirror-main"><div class="mirror-banner"><h1 style="color:#D4AF37;">Modo de Segurança</h1><p>O aplicativo precisa ser sincronizado com a internet ao menos uma vez.</p></div></main></div>`;
             }
         });
     </script>
 
     <!-- =========================================================================
-         MOTOR PRINCIPAL (REACT/TAILWIND) - ONLINE COM TODAS AS ABAS E SOBERANIA
+         MOTOR PRINCIPAL (REACT/TAILWIND) - AGORA EXECUTA ONLINE E OFFLINE IGUALMENTE
          ========================================================================= -->
     <script type="text/babel">
         const Icon = ({ name, size = 24, className = "" }) => {
@@ -540,7 +285,6 @@
             const fileInputRef = React.useRef(null);
             const recipes = window.MAKENA_RECIPES;
 
-            // --- ESTADO PWA INSTALL ---
             const [canInstall, setCanInstall] = React.useState(!!window.pwaInstallPrompt);
             
             React.useEffect(() => {
@@ -614,7 +358,6 @@
                 setNewNote({ title: '', content: '' });
             };
 
-            // SOVERANIA DE DADOS: RESTAURADA DO NÍVEL 2
             const exportData = () => {
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(notes));
                 const downloadAnchorNode = document.createElement('a');
@@ -734,7 +477,6 @@
                             ) : (
                                 <div className="max-w-6xl mx-auto page-enter">
                                     
-                                    {/* BLOCO RESTAURADO: DASHBOARD */}
                                     {activeTab === 'dashboard' && (
                                         <div className="space-y-10 md:space-y-16">
                                             <div className="relative h-[400px] md:h-[550px] rounded-[3rem] md:rounded-[4.5rem] overflow-hidden shadow-2xl group">
@@ -789,13 +531,15 @@
                                                     </div>
                                                     <div className="p-8 md:p-12 text-center">
                                                         <h3 className="text-xl md:text-2xl font-black text-slate-950 font-outfit uppercase tracking-tighter leading-tight group-hover:text-purple-600 transition-colors">{r.title}</h3>
+                                                        <div className="mt-4 flex flex-wrap justify-center gap-2">
+                                                            {r.tags && r.tags.map(t => <span key={t} className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">#{t}</span>)}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
 
-                                    {/* BLOCO RESTAURADO: ETIQUETA */}
                                     {activeTab === 'etiquette' && (
                                         <div className="bg-white p-6 md:p-20 rounded-[3rem] md:rounded-[4.5rem] shadow-xl border border-slate-100 page-break">
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-24">
@@ -835,7 +579,6 @@
                                         </div>
                                     )}
 
-                                    {/* BLOCO RESTAURADO: SOBRE */}
                                     {activeTab === 'about' && (
                                         <div className="bg-white p-6 md:p-20 rounded-[3rem] md:rounded-[4.5rem] shadow-xl border border-slate-100 page-enter">
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-24 items-center">
@@ -895,7 +638,6 @@
                                                     <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse shadow-[0_0_10px_#D4AF37]"></div> Histórico Offline
                                                 </h3>
                                                 
-                                                {/* BLOCO RESTAURADO: BOTÕES DE SOBERANIA (EXPORT/IMPORT) */}
                                                 <div className="flex gap-4 px-2">
                                                     <button onClick={exportData} title="Exportar Memórias (Backup)" className="flex-1 bg-white border border-slate-200 p-4 rounded-2xl flex justify-center items-center text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-colors"><Icon name="Download" size={20} /></button>
                                                     <input type="file" accept=".json" ref={fileInputRef} onChange={importData} className="hidden" />
@@ -919,7 +661,6 @@
                             )}
                         </div>
                         
-                        {/* Rodapé Online */}
                         <footer className="bg-slate-900 text-white pt-12 pb-8 rounded-t-[3rem] mt-auto no-print">
                             <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
                                 <div className="space-y-4">
