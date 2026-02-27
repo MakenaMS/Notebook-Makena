@@ -37,7 +37,7 @@
         document.head.appendChild(link);
 
         // =========================================================
-        // KÓDEX MEC-SHIELD V5: Ligação ao Motor Offline (sw.js)
+        // KÓDEX MEC-SHIELD V5+: Ligação ao Motor Offline (sw.js)
         // =========================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -159,12 +159,12 @@
             },
             { 
                 id: 'r2', 
-                title: 'Smoothie de Manga e Abacaxi', 
+                title: 'Batido de Manga', 
                 category: 'Bebidas', 
                 img: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?auto=format&fit=crop&w=800&q=80', 
                 tags: ['5 min', 'Fácil', 'Económico'], 
-                ingredients: '150 ml de leite gordo (liquido), 25 g de pedaços de manga fresca, 2 colheres de sopa de flocos de aveia, 6 cubos de gelo.', 
-                prep: 'Coloca todos os ingredientes, exceto o gelo, num liquidificador e bate até obter uma textura homogénea e cremosa. Serve o smoothie num copo alto com gelo e delicia-te!',
+                ingredients: '150 ml de leite gordo (liquido), 25 g de pedaços de manga fresca, 2 colheres de sopa de flocos de aveia.', 
+                prep: 'Coloca todos os ingredientes, num liquidificador e bate até obter uma textura homogénea e cremosa. Serve o smoothie num copo alto e delicia-te!',
                 control: 'Rendimento: 1 dose.'
             },
             { 
@@ -241,7 +241,7 @@
     </script>
 
     <!-- =========================================================================
-         MOTOR PRINCIPAL (REACT/TAILWIND) - AGORA EXECUTA ONLINE E OFFLINE IGUALMENTE
+         MOTOR PRINCIPAL (REACT/TAILWIND) - ONLINE E OFFLINE COM VOZ APRIMORADA
          ========================================================================= -->
     <script type="text/babel">
         const Icon = ({ name, size = 24, className = "" }) => {
@@ -335,15 +335,72 @@
                 chartInstances.current = [radar, bar];
             };
 
+            // =========================================================
+            // KÓDEX: Motor de Fatiamento Fonético (Chunking de Áudio)
+            // Resolve o bug nativo de navegadores que cortam áudios longos.
+            // =========================================================
             const speak = (text) => {
                 if (!window.speechSynthesis) return;
+                
+                // Limpa qualquer áudio preso na memória do navegador
                 window.speechSynthesis.cancel();
-                const utter = new SpeechSynthesisUtterance(text);
-                utter.lang = 'pt-PT';
-                utter.onstart = () => setIsSpeaking(true);
-                utter.onend = () => setIsSpeaking(false);
-                utter.onerror = () => setIsSpeaking(false);
-                window.speechSynthesis.speak(utter);
+                
+                // Limpa e divide o texto respeitando a pontuação
+                const cleanText = text.replace(/([.?!])\s*(?=[A-Z])/g, "$1|").split("|");
+                const chunks = [];
+                
+                // Evita limites ocultos do navegador (divide sentenças gigantes se existirem)
+                cleanText.forEach(sentence => {
+                    if (sentence.length > 150) {
+                        const words = sentence.split(" ");
+                        let currentLine = "";
+                        words.forEach(word => {
+                            if (currentLine.length + word.length < 150) {
+                                currentLine += word + " ";
+                            } else {
+                                chunks.push(currentLine.trim());
+                                currentLine = word + " ";
+                            }
+                        });
+                        if (currentLine) chunks.push(currentLine.trim());
+                    } else {
+                        if (sentence.trim()) chunks.push(sentence.trim());
+                    }
+                });
+
+                if (chunks.length === 0) return;
+
+                setIsSpeaking(true);
+                let currentChunk = 0;
+
+                const speakNext = () => {
+                    // Quando terminar todos os pedaços, desliga a animação visual
+                    if (currentChunk >= chunks.length) {
+                        setIsSpeaking(false);
+                        return;
+                    }
+                    
+                    const utter = new SpeechSynthesisUtterance(chunks[currentChunk]);
+                    utter.lang = 'pt-PT';
+                    utter.rate = 0.95; // Velocidade ligeiramente reduzida para melhor clareza das crianças
+                    utter.pitch = 1.0;
+                    
+                    // Assim que terminar uma frase, engatilha a próxima imediatamente
+                    utter.onend = () => {
+                        currentChunk++;
+                        speakNext();
+                    };
+                    
+                    utter.onerror = (e) => {
+                        console.warn("KÓDEX: Interrupção de áudio detectada.", e);
+                        setIsSpeaking(false);
+                    };
+                    
+                    window.speechSynthesis.speak(utter);
+                };
+
+                // Inicia o motor recursivo
+                speakNext();
             };
 
             const stopSpeech = () => {
@@ -449,7 +506,7 @@
                                                 </div>
                                             </div>
                                             <div className="flex gap-4 no-print">
-                                                <button onClick={() => speak(selectedRecipe.prep)} className="flex-1 bg-purple-900 text-white py-4 md:py-6 rounded-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl hover:bg-purple-800 transition-colors">
+                                                <button onClick={() => speak(`Atenção Mini Chef. Receita de ${selectedRecipe.title}. Processo: ${selectedRecipe.prep}`)} className="flex-1 bg-purple-900 text-white py-4 md:py-6 rounded-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl hover:bg-purple-800 transition-colors">
                                                     <Icon name="Volume2" size={20}/> Áudio
                                                 </button>
                                                 <button onClick={() => window.print()} className="p-4 md:p-6 bg-slate-100 text-slate-900 rounded-3xl transition-colors hover:bg-slate-200"><Icon name="Download" size={20}/></button>
