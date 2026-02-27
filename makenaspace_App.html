@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Academia Makena - Caderno de Notas Pro</title>
+    
+    <!-- =========================================================
+         KÓDEX: PWA ENGINE (PROGRESSIVE WEB APP)
+         Permite instalação nativa (Add to Home Screen)
+         ========================================================= -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Makena Pro">
+    <script>
+        // Geração Dinâmica de Manifest para Arquivo Único
+        const manifest = {
+            "name": "Academia Makena - Caderno de Notas Pro",
+            "short_name": "Makena Pro",
+            "description": "Laboratório de vida e sabor. Desenvolvendo o futuro através da culinária.",
+            "start_url": window.location.href,
+            "display": "standalone",
+            "background_color": "#faf9ff",
+            "theme_color": "#0f172a",
+            "icons": [{
+                "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzBmMTcyYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMDAiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiNENEFGMzciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPk1TPC90ZXh0Pjwvc3ZnPg==",
+                "sizes": "512x512",
+                "type": "image/svg+xml",
+                "purpose": "any maskable"
+            }]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = URL.createObjectURL(manifestBlob);
+        document.head.appendChild(link);
+
+        // =========================================================
+        // KÓDEX MEC-SHIELD: Adequação à Matriz de Segurança
+        // Navegadores bloqueiam Service Workers gerados por 'blob:'.
+        // O sistema agora buscará um arquivo 'sw.js' quando estiver online.
+        // =========================================================
+        if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {
+                    console.log("KÓDEX: Escudo PWA aguardando arquivo 'sw.js' no servidor para habilitar a Instalação Nativa.");
+                });
+            });
+        }
+        
+        // Capturador do Evento de Instalação PWA
+        window.pwaInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            window.pwaInstallPrompt = e;
+            window.dispatchEvent(new Event('pwa-ready'));
+        });
+    </script>
+
+    <!-- MOTORES DE RENDERIZAÇÃO (CDNs de Alta Fidelidade) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root { --primary: #0f172a; --accent: #6B21A8; --gold: #D4AF37; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #faf9ff; 
+            color: var(--primary);
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .font-outfit { font-family: 'Outfit', sans-serif; }
+        
+        @media print { 
+            .no-print, .mirror-sidebar { display: none !important; } 
+            .ml-0, .md\:ml-64, .mirror-main { margin-left: 0 !important; padding: 0 !important; }
+            body { background-color: white !important; }
+            .print-only { display: block !important; }
+            .page-break { page-break-after: always; }
+            .shadow-xl, .shadow-2xl, .mirror-card, .mirror-detail-card { box-shadow: none !important; border: 1px solid #eee !important; }
+            main { padding: 0 !important; margin: 0 !important; }
+        }
+        
+        .print-only { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .page-enter { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .chart-container { position: relative; width: 100%; height: 260px; }
+        @media (min-width: 768px) { .chart-container { height: 320px; } }
+        .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 6rem); }
+        @media (min-width: 768px) { .pb-safe { padding-bottom: 2rem; } }
+
+        /* =========================================================
+           KÓDEX MEC-SHIELD V4: ESPELHO VISUAL NATIVO (OFFLINE)
+           Garante que a interface permaneça idêntica sem Tailwind
+           ========================================================= */
+        .mirror-layout { display: flex; flex-direction: column; min-height: 100vh; background: #faf9ff; font-family: 'Poppins', sans-serif; }
+        .mirror-sidebar { display: none; width: 256px; background: #0f172a; flex-direction: column; align-items: center; padding: 3rem 0; color: white; position: fixed; height: 100vh; left: 0; top: 0; z-index: 50; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        @media (min-width: 768px) { .mirror-layout { flex-direction: row; } .mirror-sidebar { display: flex; } .mirror-main { margin-left: 256px; } }
+        .mirror-main { flex: 1; padding: 1rem; box-sizing: border-box; width: 100%; }
+        @media (min-width: 768px) { .mirror-main { padding: 3rem; } }
+        
+        .mirror-avatar { width: 64px; height: 64px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #D4AF37; margin-bottom: 4rem; color: #0f172a; font-weight: 900; font-size: 1.5rem; font-family: 'Outfit'; }
+        .mirror-nav-item { width: 85%; padding: 1rem; border-radius: 1rem; color: #94a3b8; font-weight: 900; text-transform: uppercase; font-size: 11px; letter-spacing: 2px; border: none; background: transparent; display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-bottom: 0.5rem; transition: 0.3s; }
+        .mirror-nav-item.active { background: #D4AF37; color: #0f172a; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        
+        .mirror-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+        .mirror-card { background: white; border-radius: 3rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; cursor: pointer; transition: transform 0.3s; display: flex; flex-direction: column; }
+        .mirror-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .mirror-card-img-container { width: 100%; height: 250px; background: #e2e8f0; position: relative; }
+        .mirror-card-tag { position: absolute; top: 1.5rem; left: 1.5rem; background: rgba(255,255,255,0.95); padding: 0.3rem 1rem; border-radius: 2rem; font-size: 9px; font-weight: 900; text-transform: uppercase; color: #4c1d95; letter-spacing: 2px; }
+        .mirror-card-body { padding: 2rem; text-align: center; }
+        .mirror-card-title { font-size: 1.5rem; font-weight: 900; color: #0f172a; text-transform: uppercase; font-family: 'Outfit'; margin: 0 0 1rem 0; line-height: 1.1; }
+        
+        .mirror-detail-card { background: white; border-radius: 3rem; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; max-width: 1000px; margin: 0 auto; margin-bottom: 2rem;}
+        @media (min-width: 768px) { .mirror-detail-card { padding: 3.5rem; border-radius: 4rem; } }
+        .mirror-back-btn { background: #f3e8ff; color: #7e22ce; border: none; padding: 0.5rem 1.5rem; border-radius: 2rem; font-weight: 900; text-transform: uppercase; font-size: 10px; letter-spacing: 2px; cursor: pointer; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; }
+        
+        .mirror-flex-cols { display: flex; flex-direction: column; gap: 2.5rem; }
+        @media (min-width: 1024px) { .mirror-flex-cols { flex-direction: row; } .mirror-col-half { flex: 1; } }
+        .mirror-title-large { font-size: 2.5rem; font-weight: 900; color: #0f172a; text-transform: uppercase; font-family: 'Outfit'; margin: 0 0 2rem 0; line-height: 1; }
+        @media (min-width: 768px) { .mirror-title-large { font-size: 3rem; } }
+        
+        .mirror-info-box { background: #f8fafc; padding: 2rem; border-radius: 2.5rem; border: 1px solid #f1f5f9; margin-bottom: 2rem; }
+        .mirror-info-title { font-weight: 900; color: #7e22ce; text-transform: uppercase; font-size: 12px; letter-spacing: 2px; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; }
+        .mirror-info-text { color: #334155; line-height: 1.8; font-weight: 300; font-size: 1.1rem; margin: 0; }
+        .mirror-control-box { background: #fefce8; border-left: 4px solid #eab308; padding: 1.5rem; border-radius: 0 1.5rem 1.5rem 0; margin-top: 1.5rem; }
+        .mirror-control-title { color: #854d0e; font-weight: 900; text-transform: uppercase; font-size: 10px; letter-spacing: 2px; margin: 0 0 0.5rem 0; }
+        .mirror-control-text { color: #713f12; margin: 0; font-size: 0.9rem; font-weight: 500; }
+        
+        /* Diário Mirror */
+        .mirror-header-flex { display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem; }
+        .mirror-header-icon { background: #dcfce7; color: #16a34a; padding: 1.25rem; border-radius: 2rem; }
+        .mirror-input-group { margin-bottom: 1.5rem; }
+        .mirror-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 5px; color: #cbd5e1; margin-left: 2rem; display: block; margin-bottom: 0.5rem; }
+        .mirror-input { width: 100%; padding: 2rem; background: #f8fafc; border-radius: 2.5rem; border: 2px solid transparent; font-family: 'Poppins'; font-size: 1.25rem; font-weight: 900; box-sizing: border-box; outline: none; transition: 0.3s; }
+        .mirror-textarea { width: 100%; padding: 2rem; background: #f8fafc; border-radius: 2.5rem; border: 2px solid transparent; font-family: 'Poppins'; font-size: 1.1rem; font-weight: 300; min-height: 250px; resize: none; box-sizing: border-box; outline: none; transition: 0.3s; line-height: 1.8; }
+        .mirror-input:focus, .mirror-textarea:focus { border-color: #e9d5ff; background: white; }
+        .mirror-btn-save { width: 100%; background: #0f172a; color: white; padding: 2rem; border-radius: 3rem; font-weight: 900; text-transform: uppercase; letter-spacing: 4px; font-size: 12px; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 1rem; transition: 0.3s; margin-top: 1rem; }
+        .mirror-btn-save:hover { background: #581c87; }
+        
+        .mirror-history-title { font-weight: 900; color: #0f172a; text-transform: uppercase; font-size: 10px; letter-spacing: 5px; display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding: 0 2rem; }
+        .mirror-dot { width: 12px; height: 12px; background: #eab308; border-radius: 50%; box-shadow: 0 0 10px #eab308; }
+        .mirror-note-card { background: white; padding: 2.5rem; border-radius: 3rem; border: 1px solid #f1f5f9; margin-bottom: 1.5rem; position: relative; }
+        .mirror-note-title { font-weight: 900; color: #0f172a; font-size: 1.25rem; text-transform: uppercase; margin: 0 0 1rem 0; }
+        .mirror-note-content { color: #64748b; font-weight: 300; line-height: 1.8; margin: 0; white-space: pre-wrap; font-style: italic; }
+        .mirror-delete-btn { position: absolute; top: 2rem; right: 2rem; background: transparent; border: none; color: #fecaca; cursor: pointer; transition: 0.3s; }
+        .mirror-delete-btn:hover { color: #dc2626; }
+
+        .mirror-banner { background: #0f172a; border-radius: 3rem; padding: 4rem; color: white; text-align: center; margin-bottom: 2rem; position: relative; overflow: hidden; }
+        .mirror-banner h1 { font-family: 'Outfit'; font-size: 4rem; text-transform: uppercase; font-weight: 900; margin: 0; color: #D4AF37; }
+        .mirror-banner p { font-size: 1.5rem; color: #cbd5e1; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#faf9ff; color:#D4AF37; font-family:'Outfit', sans-serif;">
+            <div style="width:50px; height:50px; border:4px solid rgba(212,175,55,0.3); border-top-color:#D4AF37; border-radius:50%; animation:spin 1s linear infinite;"></div>
+            <h2 style="margin-top:20px; text-transform:uppercase; letter-spacing:4px; color: #0f172a;">Iniciando KÓDEX...</h2>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        </div>
+    </div>
+
+    <!-- SOBERANIA DE DADOS: Base de Dados Imutável com Textos Fiéis ao Original -->
+    <script>
+        window.MAKENA_RECIPES = [
+            { 
+                id: 'r1', 
+                title: 'Waffles de salsicha,Salada e Leite', 
+                category: 'Pequeno-Almoço', 
+                img: 'https://raw.githubusercontent.com/MakenaMS/imagem/68677331614ef3920572506852d7fe4b48eacaf8/Waffle%20com%20ovo%20salsinha%20salsicha.jpg', 
+                tags: ['Salada', 'Leite'], 
+                ingredients: '2 chávenas farinha de trigo, ½ colher de chá de sal, 1 colher chá fermento, 2 ovos, 1 chávena leite, 2 colheres sopa manteiga derretida, Salsicha picada, Tomate, Pipino e Abacate, Leite para servir', 
+                prep: 'Misturar secos numa tigela. Noutra, misturar ovos, leite, manteiga e salsicha. Juntar tudo e mexer até ficar liso. Colocar na máquina de waffle até dourar. Montar prato com waffle + salada + Abacate + Pipino',
+                control: 'Ponto de controlo: waffle dourado fora e macio dentro.'
+            },
+            { 
+                id: 'r2', 
+                title: 'Batido de Pitaya', 
+                category: 'Bebidas', 
+                img: 'https://raw.githubusercontent.com/MakenaMS/imagem/68677331614ef3920572506852d7fe4b48eacaf8/SMOOTHIE-DE-PITAHAYA-MK.jpg', 
+                tags: ['Energia', 'Fruta'], 
+                ingredients: '1 pitaya, 1 copo leite frio ou iogurte / Pacote de leite condensado, 1 colher sopa mel', 
+                prep: 'Descascar e cortar a pitaya. Colocar tudo no liquidificador. Bater 40–60 segundos.',
+                control: 'Dica técnica: servir imediato para manter cor e textura.'
+            },
+            { 
+                id: 'r3', 
+                title: 'Mini Pizzas de Chouriço', 
+                category: 'Principal', 
+                img: 'https://raw.githubusercontent.com/MakenaMS/imagem/68677331614ef3920572506852d7fe4b48eacaf8/i90753-mini-pizzas-au-chorizo.jpg', 
+                tags: ['Massa', 'Forno'], 
+                ingredients: '500g de farinha, 2 colheres de sopa de fermento químico, 4 colheres de sopa de óleo ou azeite, 300ml de leite, 1 colher de chá de sal, molho de tomate, chouriço em rodelas, queijo ralado e orégãos.', 
+                prep: 'Mistura a farinha, o óleo, o sal e o fermento. Quando estiver tudo bem misturado, adicione o leite aos poucos e misture mais. Sove bem a massa até estar lisa e homogênea. Cubra com um pano e reserve por uma hora. Divide a massa em dois e abre uma parte com rolo até ficar bem fina e corte com um aro redondo. Faça isso com toda massa, e coloque numa assadeira untada com manteiga e farinha. Coloque molho de tomate, a seguir o chouriço, depois o queijo, cebola e finalize com orégano em folhas e leve para assar no forno em fogo médio até dourar. Bom apetite! Forno 180°C por 10–12 minutos.',
+                control: 'Ponto de controlo: queijo totalmente derretido.'
+            },
+            { 
+                id: 'r4', 
+                title: 'Cupcakes de Cenoura', 
+                category: 'Sobremesa', 
+                img: 'https://raw.githubusercontent.com/MakenaMS/imagem/68677331614ef3920572506852d7fe4b48eacaf8/cupcake%20de%20cenoura.jpg', 
+                tags: ['Doce', 'Bolo'], 
+                ingredients: '2 cenouras raladas, 2 ovos, 1 chávena açúcar, ½ chávena óleo, 2 chávenas farinha, 1 colher sopa fermento.', 
+                prep: 'Bater ovos, açúcar e óleo. Adicionar cenoura. Adicionar farinha e fermento. Colocar em forminhas de papel. Assar em forno á 180°C por 20 minutos.',
+                control: 'Teste: palito sai seco = pronto.'
+            },
+            { 
+                id: 'r5', 
+                title: 'Sumo Natural de Maracujá e Hortelã', 
+                category: 'Bebidas', 
+                img: 'https://raw.githubusercontent.com/MakenaMS/imagem/68677331614ef3920572506852d7fe4b48eacaf8/f8ea1c7aff521bedaac5eab4cbe3ce1e_XL.jpg', 
+                tags: ['Frescura', 'Natural'], 
+                ingredients: '2 maracujás, 500 ml água fria, açúcar ou mel q.b; folhas de hortelã.', 
+                prep: 'Retirar polpa. Bater com água rapidamente. Coar. Adoçar. Adicionar hortelã.',
+                control: 'Dica: não bater demais para não amargar.'
+            },
+            { 
+                id: 'r6', 
+                title: 'Panquecas Salgadas com Carne Moída', 
+                category: 'Refeição', 
+                img: 'https://raw.githubusercontent.com/MakenaMS/imagem/68677331614ef3920572506852d7fe4b48eacaf8/24-panqueca.jpg', 
+                tags: ['Completa', 'Proteína'], 
+                ingredients: 'massa: 1 chávena farinha, 1 ovo, 1 chávena leite, 1 pitada sal | Recheio: Carne moída, Cebola, Alho, Tomate, Sal', 
+                prep: 'Misturar ingredientes da massa. Frigideira levemente untada. Colocar concha fina e dourar dos dois lados. Refogar carne com temperos. Rechear e enrolar.',
+                control: 'Ponto de controlo: panqueca fina e flexível, não quebrar ao enrolar.'
+            }
+        ];
+
+        // Componente SVG Dinâmico para Offline e Online
+        window.getIconSVG = function(name, size=24, color="currentColor") {
+            const icons = {
+                ChefHat: '<path d="M6 13.8V19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-5.2M18 10V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v6M3 10h18M22 10c0-2.2-1.8-4-4-4M2 10c0-2.2 1.8-4 4-4" />',
+                Utensils: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v4M12 15V2a5 5 0 0 1 5 5v8M15 15v7M9 15v7" />',
+                Plus: '<path d="M12 5v14M5 12h14" />',
+                Save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8" />',
+                ArrowLeft: '<path d="M19 12H5M12 19l-7-7 7-7" />',
+                Trash2: '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" />',
+                BarChart3: '<path d="M3 3v18h18M18 17v-3M13 17V9M8 17v-5" />',
+                Info: '<circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />',
+                CheckCircle2: '<path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM9 12l2 2 4-4" />',
+                Star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />',
+                Upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />',
+                Download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />'
+            };
+            return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icons[name] || ''}</svg>`;
+        };
+    </script>
+
+    <!-- =========================================================================
+         MEC-SHIELD NÍVEL 4: ESPELHAMENTO SIMÉTRICO (OFFLINE COMPLETADO)
+         ========================================================================= -->
+    <script>
+        window.addEventListener('load', function() {
+            if (typeof React === 'undefined' || typeof Babel === 'undefined' || typeof tailwind === 'undefined') {
+                console.warn("KÓDEX MEC-SHIELD Ativado: Desenhando Espelho Visual Offline Completo.");
+                
+                const root = document.getElementById('root');
+                window.offlineTab = 'dashboard';
+                window.selectedRecipe = null;
+
+                window.renderOfflineApp = function() {
+                    let mainContent = '';
+
+                    if (window.selectedRecipe) {
+                        const r = window.selectedRecipe;
+                        mainContent = `
+                            <div class="mirror-detail-card page-enter">
+                                <button class="mirror-back-btn" onclick="window.selectedRecipe = null; renderOfflineApp();">
+                                    ${getIconSVG('ArrowLeft', 16)} Voltar
+                                </button>
+                                <div class="mirror-flex-cols">
+                                    <div class="mirror-col-half">
+                                        <div class="mirror-card-img-container" style="border-radius: 2.5rem; height: 350px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+                                            <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#e2e8f0; color:#94a3b8;">
+                                                ${getIconSVG('ChefHat', 48)}
+                                                <span style="font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px;">Imagem Offline</span>
+                                            </div>
+                                            <div class="mirror-card-tag" style="top: 1rem; left: 1rem;">${r.category}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mirror-col-half">
+                                        <h1 class="mirror-title-large">${r.title}</h1>
+                                        <div class="mirror-info-box">
+                                            <h4 class="mirror-info-title">${getIconSVG('Utensils', 18)} Ingredientes</h4>
+                                            <p class="mirror-info-text">${r.ingredients}</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="mirror-info-title" style="color: #0f172a; border-color: #f1f5f9;">Preparo do Mini Chef</h4>
+                                            <p class="mirror-info-text">${r.prep}</p>
+                                        </div>
+                                        ${r.control ? `
+                                        <div class="mirror-control-box">
+                                            <h4 class="mirror-control-title">Nota do Chef</h4>
+                                            <p class="mirror-control-text">${r.control}</p>
+                                        </div>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (window.offlineTab === 'dashboard') {
+                        mainContent = `
+                            <div class="page-enter">
+                                <div class="mirror-banner">
+                                    <span style="background: #D4AF37; color: #0f172a; font-size: 11px; font-weight: 900; padding: 5px 15px; border-radius: 20px; text-transform: uppercase; letter-spacing: 2px;">Espaço Formativo Digital</span>
+                                    <h1 style="margin-top: 20px;">Arte & Sabor</h1>
+                                    <p style="font-weight: bold; text-transform: uppercase; letter-spacing: 4px; color: #D4AF37;">Makena Space (Modo Offline)</p>
+                                </div>
+                                <div class="mirror-detail-card text-center" style="text-align: center;">
+                                    <h2 class="mirror-title-large" style="margin-bottom: 1rem;">Relatório aos Encarregados</h2>
+                                    <p class="mirror-info-text" style="font-style: italic; margin-bottom: 3rem;">"O desenvolvimento na Academia Makena Space transcende a cozinha. É sobre construir caráter e competência."</p>
+                                    
+                                    <div class="mirror-flex-cols" style="text-align: left;">
+                                        <div class="mirror-info-box">
+                                            <h4 class="mirror-info-title" style="color: #0f172a;">${getIconSVG('BarChart3', 20)} Comportamental</h4>
+                                            <p class="mirror-info-text" style="margin-top: 1rem;"><strong>Autonomia:</strong> Gestão de processos do início ao fim.</p>
+                                            <p class="mirror-info-text" style="margin-top: 0.5rem;"><strong>Disciplina:</strong> Noções de higiene e gestão de tempo.</p>
+                                            <p style="font-size: 10px; color: #94a3b8; margin-top: 1rem;">*Gráficos visuais requerem conexão ativa.</p>
+                                        </div>
+                                        <div class="mirror-info-box">
+                                            <h4 class="mirror-info-title" style="color: #0f172a;">${getIconSVG('CheckCircle2', 20)} Ganhos Académicos</h4>
+                                            <p class="mirror-info-text" style="margin-top: 1rem;"><strong>Matemática:</strong> Trabalho com medidas e pesos.</p>
+                                            <p class="mirror-info-text" style="margin-top: 0.5rem;"><strong>Ciência:</strong> Transformações físicas e químicas.</p>
+                                            <p style="font-size: 10px; color: #94a3b8; margin-top: 1rem;">*Gráficos visuais requerem conexão ativa.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (window.offlineTab === 'recipes') {
+                        mainContent = `
+                            <div class="mirror-grid page-enter">
+                                ${window.MAKENA_RECIPES.map((r, i) => `
+                                    <div class="mirror-card" onclick="window.selectedRecipe = window.MAKENA_RECIPES[${i}]; renderOfflineApp();">
+                                        <div class="mirror-card-img-container">
+                                            <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#94a3b8;">
+                                                ${getIconSVG('ChefHat', 32)} <span style="font-size: 8px; font-weight: 900; text-transform: uppercase; margin-top: 5px;">Offline</span>
+                                            </div>
+                                            <div class="mirror-card-tag">${r.category}</div>
+                                        </div>
+                                        <div class="mirror-card-body">
+                                            <h3 class="mirror-card-title">${r.title}</h3>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } else if (window.offlineTab === 'etiquette') {
+                        mainContent = `
+                            <div class="mirror-detail-card page-enter">
+                                <h2 class="mirror-title-large">Culinária com o <span style="color: #6B21A8;">Mini Chef</span></h2>
+                                <p class="mirror-info-text" style="margin-bottom: 3rem;">Este bloco é o teu guia oficial. Focamos na competência prática, organização, higiene e criatividade.</p>
+                                
+                                <div class="mirror-info-box">
+                                    <h3 class="mirror-info-title" style="font-size: 18px; color: #0f172a;">Etiqueta e Talheres</h3>
+                                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                                        <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; flex: 1; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                                            <h5 style="margin: 0; font-weight: 900; text-transform: uppercase; font-size: 10px; color: #6B21A8;">A Comer</h5>
+                                            <p style="font-size: 12px; margin-top: 10px;">Talheres em V invertido</p>
+                                        </div>
+                                        <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; flex: 1; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                                            <h5 style="margin: 0; font-weight: 900; text-transform: uppercase; font-size: 10px; color: #6B21A8;">Pausa</h5>
+                                            <p style="font-size: 12px; margin-top: 10px;">Talheres cruzados no centro</p>
+                                        </div>
+                                        <div style="background: white; padding: 1.5rem; border-radius: 1.5rem; flex: 1; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                                            <h5 style="margin: 0; font-weight: 900; text-transform: uppercase; font-size: 10px; color: #6B21A8;">Terminei</h5>
+                                            <p style="font-size: 12px; margin-top: 10px;">Talheres paralelos</p>
+                                        </div>
+                                    </div>
+                                    <p class="mirror-info-text" style="margin-top: 2rem; font-size: 14px;"><strong>Mesa Posta:</strong> Prato ao centro. Garfo à esquerda. Faca à direita. Colher à direita da faca. Copo acima da faca.</p>
+                                </div>
+                            </div>
+                        `;
+                    } else if (window.offlineTab === 'about') {
+                        mainContent = `
+                            <div class="mirror-detail-card page-enter">
+                                <span style="color: #d97706; font-weight: 900; text-transform: uppercase; font-size: 11px; letter-spacing: 4px;">A Nossa Essência</span>
+                                <h2 class="mirror-title-large" style="margin-top: 1rem;">Mais do que culinária, <br/><span style="color: #6B21A8;">um laboratório de vida.</span></h2>
+                                <p class="mirror-info-text" style="margin-top: 1.5rem; margin-bottom: 3rem;">Na Academia Makena Space, acreditamos que a cozinha é o ambiente perfeito para moldar o futuro. Transformamos ingredientes em pratos deliciosos e desafios em competências vitais.</p>
+                                
+                                <div class="mirror-flex-cols">
+                                    <div class="mirror-info-box">
+                                        <div style="background: white; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #6B21A8; margin-bottom: 1rem;">${getIconSVG('Star', 24)}</div>
+                                        <h4 class="mirror-info-title" style="color: #0f172a;">Missão</h4>
+                                        <p class="mirror-info-text" style="font-size: 14px;">Desenvolver competências comportamentais, autonomia e inteligência emocional através da arte gastronómica.</p>
+                                    </div>
+                                    <div class="mirror-info-box">
+                                        <div style="background: white; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #d97706; margin-bottom: 1rem;">${getIconSVG('CheckCircle2', 24)}</div>
+                                        <h4 class="mirror-info-title" style="color: #0f172a;">Visão</h4>
+                                        <p class="mirror-info-text" style="font-size: 14px;">Ser a referência na formação integral de excelência em Angola, unindo educação prática, rigor e nutrição saudável.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (window.offlineTab === 'diary') {
+                        let notes = [];
+                        try { notes = JSON.parse(localStorage.getItem('makena_pro_notes_final')) || []; } catch(e) {}
+                        
+                        mainContent = `
+                            <div class="mirror-flex-cols page-enter">
+                                <div style="flex: 2; background: white; padding: 4rem; border-radius: 4rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid #f1f5f9;">
+                                    <div class="mirror-header-flex">
+                                        <div class="mirror-header-icon">${getIconSVG('Plus', 32)}</div>
+                                        <h2 class="mirror-title-large" style="margin: 0;">Diário</h2>
+                                    </div>
+                                    <div class="mirror-input-group">
+                                        <label class="mirror-label">Título da Memória</label>
+                                        <input type="text" id="off_title" class="mirror-input" placeholder="...">
+                                    </div>
+                                    <div class="mirror-input-group">
+                                        <label class="mirror-label">Conteúdo da Descoberta</label>
+                                        <textarea id="off_content" class="mirror-textarea" placeholder="O que aprendeste hoje?"></textarea>
+                                    </div>
+                                    <button class="mirror-btn-save" onclick="saveOfflineNote()">
+                                        ${getIconSVG('Save', 24)} Guardar Localmente
+                                    </button>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h3 class="mirror-history-title"><div class="mirror-dot"></div> Histórico Offline</h3>
+                                    <div id="mirror-notes-list">
+                                        ${notes.map(n => `
+                                            <div class="mirror-note-card">
+                                                <h4 class="mirror-note-title">${n.title}</h4>
+                                                <p class="mirror-note-content">${n.content}</p>
+                                                <button class="mirror-delete-btn" onclick="deleteOfflineNote(${n.id})">${getIconSVG('Trash2', 20)}</button>
+                                            </div>
+                                        `).join('')}
+                                        ${notes.length === 0 ? '<div style="padding: 2rem; text-align: center; color: #cbd5e1; border: 2px dashed #f1f5f9; border-radius: 2rem; font-size: 0.9rem;">Nenhuma memória registada.</div>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    root.innerHTML = `
+                        <div class="mirror-layout">
+                            <aside class="mirror-sidebar">
+                                <div class="mirror-avatar">MS</div>
+                                <button class="mirror-nav-item ${window.offlineTab === 'dashboard' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='dashboard'; window.selectedRecipe=null; renderOfflineApp();">
+                                    ${getIconSVG('BarChart3', 22)} Painel
+                                </button>
+                                <button class="mirror-nav-item ${window.offlineTab === 'recipes' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='recipes'; window.selectedRecipe=null; renderOfflineApp();">
+                                    ${getIconSVG('ChefHat', 22)} Receitas
+                                </button>
+                                <button class="mirror-nav-item ${window.offlineTab === 'etiquette' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='etiquette'; window.selectedRecipe=null; renderOfflineApp();">
+                                    ${getIconSVG('Utensils', 22)} Etiqueta
+                                </button>
+                                <button class="mirror-nav-item ${window.offlineTab === 'about' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='about'; window.selectedRecipe=null; renderOfflineApp();">
+                                    ${getIconSVG('Info', 22)} Sobre
+                                </button>
+                                <button class="mirror-nav-item ${window.offlineTab === 'diary' && !window.selectedRecipe ? 'active' : ''}" onclick="window.offlineTab='diary'; window.selectedRecipe=null; renderOfflineApp();">
+                                    ${getIconSVG('Plus', 22)} Diário
+                                </button>
+                            </aside>
+                            <main class="mirror-main">
+                                ${mainContent}
+                            </main>
+                        </div>
+                    `;
+                };
+
+                window.saveOfflineNote = function() {
+                    const title = document.getElementById('off_title').value;
+                    const contentTxt = document.getElementById('off_content').value;
+                    if (!title || !contentTxt) return;
+                    let notes = [];
+                    try { notes = JSON.parse(localStorage.getItem('makena_pro_notes_final')) || []; } catch(e) {}
+                    notes.unshift({ id: Date.now(), title: title, content: contentTxt });
+                    localStorage.setItem('makena_pro_notes_final', JSON.stringify(notes));
+                    renderOfflineApp();
+                };
+
+                window.deleteOfflineNote = function(id) {
+                    let notes = [];
+                    try { notes = JSON.parse(localStorage.getItem('makena_pro_notes_final')) || []; } catch(e) {}
+                    notes = notes.filter(n => n.id !== id);
+                    localStorage.setItem('makena_pro_notes_final', JSON.stringify(notes));
+                    renderOfflineApp();
+                };
+
+                renderOfflineApp();
+            }
+        });
+    </script>
+
+    <!-- =========================================================================
+         MOTOR PRINCIPAL (REACT/TAILWIND) - ONLINE COM TODAS AS ABAS E SOBERANIA
+         ========================================================================= -->
+    <script type="text/babel">
+        const Icon = ({ name, size = 24, className = "" }) => {
+            return <div dangerouslySetInnerHTML={{__html: window.getIconSVG(name, size, "currentColor")}} className={className} style={{display: 'inline-block', lineHeight: 0}} />;
+        };
+
+        const FallbackImage = ({ src, alt, className }) => {
+            const [error, setError] = React.useState(false);
+            if (error) {
+                return (
+                    <div className={`bg-slate-200 flex flex-col items-center justify-center text-slate-400 ${className}`}>
+                        <Icon name="ChefHat" size={48} className="opacity-50 mb-2" />
+                        <span className="text-[10px] font-black uppercase tracking-widest px-4 text-center">Imagem Offline</span>
+                    </div>
+                );
+            }
+            return <img src={src} alt={alt} className={className} onError={() => setError(true)} />;
+        };
+
+        const CutleryVisual = ({ type }) => {
+            const visuals = {
+                v_shape: <g transform="translate(10, 10)"><circle cx="40" cy="40" r="38" fill="none" stroke="#f1f5f9" strokeWidth="2" /><g transform="rotate(-30, 40, 40)"><path d="M30 20 v10 M33 20 v10 M36 20 v10 M33 30 v25" stroke="#6B21A8" strokeWidth="2.5" fill="none" /></g><g transform="rotate(30, 40, 40)"><path d="M50 20 v20 M50 40 v20" stroke="#6B21A8" strokeWidth="2.5" fill="none" /></g></g>,
+                crossed: <g transform="translate(10, 10)"><circle cx="40" cy="40" r="38" fill="none" stroke="#f1f5f9" strokeWidth="2" /><g transform="rotate(45, 40, 40)"><path d="M15 40 h50" stroke="#6B21A8" strokeWidth="3" /></g><g transform="rotate(-45, 40, 40)"><path d="M15 40 h50" stroke="#6B21A8" strokeWidth="3" /></g></g>,
+                parallel: <g transform="translate(10, 10)"><circle cx="40" cy="40" r="38" fill="none" stroke="#f1f5f9" strokeWidth="2" /><path d="M35 15 v50" stroke="#6B21A8" strokeWidth="4" strokeLinecap="round" /><path d="M45 15 v50" stroke="#6B21A8" strokeWidth="4" strokeLinecap="round" /></g>
+            };
+            return <svg width="80" height="80" viewBox="0 0 100 100" className="mx-auto text-purple-600 transition-transform hover:scale-110 duration-300">{visuals[type]}</svg>;
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = React.useState('dashboard');
+            const [selectedRecipe, setSelectedRecipe] = React.useState(null);
+            
+            const [notes, setNotes] = React.useState(() => {
+                try { return JSON.parse(localStorage.getItem('makena_pro_notes_final')) || []; } catch (e) { return []; }
+            });
+            const [newNote, setNewNote] = React.useState({ title: '', content: '' });
+            const [isSpeaking, setIsSpeaking] = React.useState(false);
+            const radarRef = React.useRef(null);
+            const barRef = React.useRef(null);
+            const chartInstances = React.useRef([]);
+            const fileInputRef = React.useRef(null);
+            const recipes = window.MAKENA_RECIPES;
+
+            // --- ESTADO PWA INSTALL ---
+            const [canInstall, setCanInstall] = React.useState(!!window.pwaInstallPrompt);
+            
+            React.useEffect(() => {
+                const handlePwaReady = () => setCanInstall(true);
+                window.addEventListener('pwa-ready', handlePwaReady);
+                return () => window.removeEventListener('pwa-ready', handlePwaReady);
+            }, []);
+
+            const handleInstallApp = async () => {
+                if (!window.pwaInstallPrompt) return;
+                window.pwaInstallPrompt.prompt();
+                const { outcome } = await window.pwaInstallPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    setCanInstall(false);
+                    window.pwaInstallPrompt = null;
+                }
+            };
+
+            React.useEffect(() => {
+                if (activeTab === 'dashboard' && !selectedRecipe) renderCharts();
+                return () => {
+                    chartInstances.current.forEach(c => c.destroy());
+                    chartInstances.current = [];
+                };
+            }, [activeTab, selectedRecipe]);
+
+            const renderCharts = () => {
+                if (!radarRef.current || !barRef.current || typeof Chart === 'undefined') return;
+                const ctxRadar = radarRef.current.getContext('2d');
+                const radar = new Chart(ctxRadar, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Autonomia', 'Disciplina', 'Higiene', 'Foco', 'Tempo', 'Resolução'],
+                        datasets: [{ data: [95, 90, 100, 88, 85, 92], backgroundColor: 'rgba(107, 33, 168, 0.2)', borderColor: '#6B21A8', pointBackgroundColor: '#D4AF37', borderWidth: 2 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { r: { grid: { color: '#f1f5f9' }, ticks: { display: false } } }, plugins: { legend: { display: false } } }
+                });
+
+                const ctxBar = barRef.current.getContext('2d');
+                const bar = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Matemática', 'Ciência', 'Postura', 'Decisão'],
+                        datasets: [{ data: [95, 92, 100, 85], backgroundColor: ['#6B21A8', '#7E22CE', '#9333EA', '#D4AF37'], borderRadius: 8 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } } } }
+                });
+                chartInstances.current = [radar, bar];
+            };
+
+            const speak = (text) => {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'pt-PT';
+                utter.onstart = () => setIsSpeaking(true);
+                utter.onend = () => setIsSpeaking(false);
+                utter.onerror = () => setIsSpeaking(false);
+                window.speechSynthesis.speak(utter);
+            };
+
+            const stopSpeech = () => {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                setIsSpeaking(false);
+            };
+
+            const saveNote = () => {
+                if (!newNote.title || !newNote.content) return;
+                setNotes([{ ...newNote, id: Date.now() }, ...notes]);
+                setNewNote({ title: '', content: '' });
+            };
+
+            // SOVERANIA DE DADOS: RESTAURADA DO NÍVEL 2
+            const exportData = () => {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(notes));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "makena_memorias.json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            };
+
+            const importData = (event) => {
+                const fileReader = new FileReader();
+                fileReader.readAsText(event.target.files[0], "UTF-8");
+                fileReader.onload = e => {
+                    try {
+                        const importedNotes = JSON.parse(e.target.result);
+                        if(Array.isArray(importedNotes)) {
+                            const merged = [...importedNotes, ...notes].reduce((acc, current) => {
+                                const x = acc.find(item => item.id === current.id);
+                                if (!x) return acc.concat([current]); else return acc;
+                            }, []);
+                            setNotes(merged);
+                        }
+                    } catch (error) { alert("Falha ao ler o arquivo."); }
+                };
+            };
+
+            const navItems = [
+                { id: 'dashboard', icon: 'BarChart3', label: 'Painel' },
+                { id: 'recipes', icon: 'ChefHat', label: 'Receitas' },
+                { id: 'etiquette', icon: 'Utensils', label: 'Etiqueta' },
+                { id: 'about', icon: 'Info', label: 'Sobre' },
+                { id: 'diary', icon: 'Plus', label: 'Diário' }
+            ];
+
+            return (
+                <div className="min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+                    <aside className="hidden md:flex fixed inset-y-0 left-0 w-64 bg-slate-900 text-white flex-col items-center py-12 no-print z-50 shadow-2xl">
+                        <div className="w-16 h-16 bg-white rounded-full mb-16 border-2 border-yellow-500 overflow-hidden shadow-lg flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+                            <span className="text-slate-900 font-black text-xl font-outfit">MS</span>
+                        </div>
+                        <nav className="flex-1 w-full px-6 space-y-4">
+                            {navItems.map(item => (
+                                <button key={item.id} onClick={() => {setActiveTab(item.id); setSelectedRecipe(null)}} 
+                                    className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all ${activeTab === item.id ? 'bg-yellow-500 text-slate-900 shadow-xl' : 'hover:bg-white/5 text-slate-400'}`}>
+                                    <Icon name={item.icon} size={22} /> <span className="font-black text-[11px] uppercase tracking-widest">{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+                        {canInstall && (
+                            <button onClick={handleInstallApp} className="mb-4 p-4 bg-green-500/10 text-green-500 rounded-2xl flex items-center gap-3 hover:bg-green-500 hover:text-slate-900 transition-all w-48 justify-center animate-pulse">
+                                <Icon name="Download" size={20} /> <span className="font-black text-[10px] uppercase font-outfit">Instalar App</span>
+                            </button>
+                        )}
+                        <button onClick={() => window.print()} className="mb-10 p-4 bg-yellow-500/10 text-yellow-500 rounded-2xl flex items-center gap-3 hover:bg-yellow-500 hover:text-slate-900 transition-all">
+                            <Icon name="Download" size={20} /> <span className="font-black text-[10px] uppercase font-outfit">Exportar PDF</span>
+                        </button>
+                    </aside>
+
+                    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 flex justify-around items-center py-4 px-2 no-print z-[100] shadow-[0_-10px_40px_rgba(0,0,0,0.3)]">
+                        {navItems.map(item => (
+                            <button key={item.id} onClick={() => {setActiveTab(item.id); setSelectedRecipe(null)}} 
+                                className={`flex flex-col items-center gap-1 transition-all ${activeTab === item.id ? 'text-yellow-500 scale-110' : 'text-slate-500'}`}>
+                                <Icon name={item.icon} size={22} />
+                                <span className="text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+                            </button>
+                        ))}
+                        {canInstall && (
+                            <button onClick={handleInstallApp} className="flex flex-col items-center gap-1 transition-all text-green-500 hover:scale-110 animate-bounce">
+                                <Icon name="Download" size={22} />
+                                <span className="text-[8px] font-black uppercase tracking-tighter">Instalar</span>
+                            </button>
+                        )}
+                    </nav>
+
+                    <main className="flex-1 md:ml-64 flex flex-col min-h-screen">
+                        <div className="p-4 md:p-12 pb-safe flex-1">
+                            {selectedRecipe ? (
+                                <div className="max-w-5xl mx-auto bg-white p-6 md:p-14 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl border border-slate-100 page-enter">
+                                    <button onClick={() => setSelectedRecipe(null)} className="mb-8 flex items-center gap-2 text-purple-600 font-black bg-purple-50 px-6 py-2 rounded-full w-fit text-[10px] uppercase tracking-widest no-print hover:bg-purple-100 transition-colors">
+                                        <Icon name="ArrowLeft" size={16}/> Voltar
+                                    </button>
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16">
+                                        <div className="space-y-6 md:space-y-8">
+                                            <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl h-[350px] md:h-[500px]">
+                                                <FallbackImage src={selectedRecipe.img} className="h-full w-full object-cover" alt={selectedRecipe.title} />
+                                                <div className="absolute top-4 left-4 bg-white/95 px-4 py-1.5 rounded-full text-[9px] font-black text-purple-800 uppercase tracking-widest shadow-lg">
+                                                    {selectedRecipe.category}
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-4 no-print">
+                                                <button onClick={() => speak(selectedRecipe.prep)} className="flex-1 bg-purple-900 text-white py-4 md:py-6 rounded-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl hover:bg-purple-800 transition-colors">
+                                                    <Icon name="Volume2" size={20}/> Áudio
+                                                </button>
+                                                <button onClick={() => window.print()} className="p-4 md:p-6 bg-slate-100 text-slate-900 rounded-3xl transition-colors hover:bg-slate-200"><Icon name="Download" size={20}/></button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-10">
+                                            <h1 className="text-3xl md:text-5xl font-black text-slate-900 font-outfit uppercase tracking-tighter leading-tight">{selectedRecipe.title}</h1>
+                                            <div className="bg-slate-50 p-6 md:p-10 rounded-[2.5rem] border border-slate-100">
+                                                <h4 className="font-black text-purple-700 mb-4 flex items-center gap-2 text-xs uppercase tracking-widest"><Icon name="Utensils" size={18}/> Ingredientes</h4>
+                                                <p className="text-slate-700 leading-relaxed text-lg font-light">{selectedRecipe.ingredients}</p>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <h4 className="font-black text-slate-950 uppercase text-[10px] tracking-[0.3em] border-b border-slate-100 pb-3">Preparo do Mini Chef</h4>
+                                                <p className="text-slate-600 text-lg leading-relaxed font-light">{selectedRecipe.prep}</p>
+                                            </div>
+                                            {selectedRecipe.control && (
+                                                <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-r-2xl mt-6">
+                                                    <p className="text-yellow-800 font-bold uppercase tracking-wider text-[10px] mb-2">Nota do Chef</p>
+                                                    <p className="text-yellow-900 font-medium text-sm">{selectedRecipe.control}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="max-w-6xl mx-auto page-enter">
+                                    
+                                    {/* BLOCO RESTAURADO: DASHBOARD */}
+                                    {activeTab === 'dashboard' && (
+                                        <div className="space-y-10 md:space-y-16">
+                                            <div className="relative h-[400px] md:h-[550px] rounded-[3rem] md:rounded-[4.5rem] overflow-hidden shadow-2xl group">
+                                                <FallbackImage src="https://raw.githubusercontent.com/MakenaMS/imagem/68677331614ef3920572506852d7fe4b48eacaf8/IMG-20260218-WA0009.jpg" className="w-full h-full object-cover transition-transform duration-[6s] group-hover:scale-110" alt="Dashboard Banner" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/30 to-transparent flex flex-col justify-end p-8 md:p-24">
+                                                    <span className="bg-yellow-500 text-slate-950 text-[9px] md:text-[11px] font-black px-5 py-1.5 rounded-full w-fit mb-6 uppercase tracking-[0.4em] shadow-lg">Espaço Formativo Digital</span>
+                                                    <h1 className="text-5xl md:text-9xl font-black text-white uppercase tracking-tighter font-outfit leading-none mb-4">Arte & Sabor</h1>
+                                                    <p className="text-yellow-400 font-bold text-xl md:text-3xl uppercase tracking-widest opacity-90 font-outfit">Makena Space</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-white rounded-[3rem] md:rounded-[4rem] p-8 md:p-20 border border-slate-100 shadow-xl page-break">
+                                                <div className="text-center mb-16 md:mb-24">
+                                                    <h2 className="text-3xl md:text-6xl font-black text-slate-950 uppercase tracking-tighter font-outfit mb-6">Relatório aos Encarregados</h2>
+                                                    <p className="text-slate-500 font-light italic text-xl md:text-2xl leading-relaxed">"O desenvolvimento na Academia Makena Space transcende a cozinha. É sobre construir caráter e competência."</p>
+                                                </div>
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20">
+                                                    <div className="space-y-8 bg-slate-50 p-8 md:p-12 rounded-[3rem] md:rounded-[3.5rem] border border-slate-100 shadow-inner">
+                                                        <div className="flex items-center gap-4 border-b border-slate-200 pb-6">
+                                                            <div className="bg-purple-900 p-3 rounded-2xl text-white"><Icon name="BarChart3" size={24}/></div>
+                                                            <h4 className="text-lg md:text-xl font-black text-slate-900 uppercase">Comportamental</h4>
+                                                        </div>
+                                                        <div className="chart-container"><canvas ref={radarRef}></canvas></div>
+                                                        <div className="space-y-4 pt-4">
+                                                            <div className="flex flex-col"><span className="text-[10px] font-black text-purple-700 uppercase tracking-widest">Autonomia</span><p className="text-sm font-medium">Gestão de processos do início ao fim.</p></div>
+                                                            <div className="flex flex-col"><span className="text-[10px] font-black text-purple-700 uppercase tracking-widest">Disciplina</span><p className="text-sm font-medium">Noções de higiene e gestão de tempo.</p></div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-8 bg-slate-50 p-8 md:p-12 rounded-[3rem] md:rounded-[3.5rem] border border-slate-100 shadow-inner">
+                                                        <div className="flex items-center gap-4 border-b border-slate-200 pb-6">
+                                                            <div className="bg-yellow-500 p-3 rounded-2xl text-slate-900"><Icon name="CheckCircle2" size={24}/></div>
+                                                            <h4 className="text-lg md:text-xl font-black text-slate-900 uppercase">Ganhos Académicos</h4>
+                                                        </div>
+                                                        <div className="chart-container"><canvas ref={barRef}></canvas></div>
+                                                        <div className="space-y-4 pt-4">
+                                                            <div className="flex flex-col"><span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest">Matemática</span><p className="text-sm font-medium">Trabalho com medidas e pesos.</p></div>
+                                                            <div className="flex flex-col"><span className="text-[10px] font-black text-yellow-600 uppercase tracking-widest">Ciência</span><p className="text-sm font-medium">Transformações físicas e químicas.</p></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'recipes' && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+                                            {recipes.map(r => (
+                                                <div key={r.id} onClick={() => setSelectedRecipe(r)} className="bg-white rounded-[3rem] md:rounded-[3.5rem] overflow-hidden border border-slate-100 cursor-pointer hover:shadow-2xl hover:-translate-y-3 transition-all group">
+                                                    <div className="h-64 md:h-80 w-full overflow-hidden relative">
+                                                        <FallbackImage src={r.img} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-[1.5s]" alt={r.title} />
+                                                        <div className="absolute top-6 left-6 bg-white/95 backdrop-blur px-4 py-1.5 rounded-full text-[9px] font-black uppercase text-purple-900 tracking-widest shadow-lg">{r.category}</div>
+                                                    </div>
+                                                    <div className="p-8 md:p-12 text-center">
+                                                        <h3 className="text-xl md:text-2xl font-black text-slate-950 font-outfit uppercase tracking-tighter leading-tight group-hover:text-purple-600 transition-colors">{r.title}</h3>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* BLOCO RESTAURADO: ETIQUETA */}
+                                    {activeTab === 'etiquette' && (
+                                        <div className="bg-white p-6 md:p-20 rounded-[3rem] md:rounded-[4.5rem] shadow-xl border border-slate-100 page-break">
+                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-24">
+                                                <div className="space-y-10">
+                                                    <div className="space-y-6">
+                                                        <h2 className="text-4xl md:text-6xl font-black text-slate-900 font-outfit uppercase tracking-tighter leading-none">Culinária com o <br/><span className="text-purple-600">Mini Chef</span></h2>
+                                                        <p className="text-slate-500 text-lg md:text-xl font-light leading-relaxed">Este bloco é o teu guia oficial. Focamos na competência prática, organização, higiene e criatividade. Execute as receitas e consolide hábitos correctos na cozinha.</p>
+                                                    </div>
+                                                    <div className="space-y-10 bg-slate-50 p-8 md:p-12 rounded-[3.5rem] border border-slate-100 shadow-inner">
+                                                        <h3 className="text-2xl font-black text-purple-950 uppercase tracking-tighter font-outfit border-b border-slate-200 pb-4">Etiqueta e Talheres</h3>
+                                                        <div className="space-y-10">
+                                                            <div>
+                                                                <span className="font-black uppercase text-purple-700 text-[10px] tracking-[0.4em] block mb-6">Linguagem Silenciosa</span>
+                                                                <div className="grid grid-cols-3 gap-2 md:gap-6 text-center">
+                                                                    <div className="bg-white p-3 md:p-6 rounded-[2rem] border border-slate-100 shadow-sm transition-colors hover:border-purple-200"><CutleryVisual type="v_shape" /><h5 className="font-black uppercase text-[8px] md:text-[9px] mt-4 text-purple-900">A comer</h5></div>
+                                                                    <div className="bg-white p-3 md:p-6 rounded-[2rem] border border-slate-100 shadow-sm transition-colors hover:border-purple-200"><CutleryVisual type="crossed" /><h5 className="font-black uppercase text-[8px] md:text-[9px] mt-4 text-purple-900">Pausa</h5></div>
+                                                                    <div className="bg-white p-3 md:p-6 rounded-[2rem] border border-slate-100 shadow-sm transition-colors hover:border-purple-200"><CutleryVisual type="parallel" /><h5 className="font-black uppercase text-[8px] md:text-[9px] mt-4 text-purple-900">Terminei</h5></div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-sm text-slate-600 leading-relaxed font-light"><p className="mb-2"><strong>Mesa Posta:</strong> Prato ao centro. Garfo à esquerda. Faca à direita. Colher à direita da faca. Copo acima da faca.</p></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-12">
+                                                    <div className="bg-purple-950 text-white p-10 md:p-16 rounded-[4rem] shadow-2xl relative overflow-hidden group">
+                                                        <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500 rounded-full blur-[100px] opacity-10 -mr-20 -mt-20"></div>
+                                                        <h4 className="font-black mb-10 flex items-center gap-4 text-2xl border-b border-purple-800 pb-6 uppercase tracking-widest text-yellow-500"><Icon name="CheckCircle2" size={30}/> Regras de Ouro</h4>
+                                                        <ul className="space-y-8 text-base md:text-lg font-medium">
+                                                            {["Postura direita ao sentar.", "Guardanapo sempre no colo.", "Mastigar de boca fechada.", "Não falar com comida na boca.", "Cotovelos fora da mesa.", "Cortesia constante (Por favor, Obrigado)."].map((text, i) => (
+                                                                <li key={i} className="flex items-center gap-6"><div className="w-2.5 h-2.5 bg-yellow-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.4)]"></div><span>{text}</span></li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                    <FallbackImage src="https://raw.githubusercontent.com/MakenaMS/imagem/057229dc310541b89863af0b295f3858adc95838/mesa-posta-cafe-manha.jpeg" className="rounded-[4rem] shadow-2xl h-[400px] w-full object-cover border-8 border-white" alt="Mesa Posta" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* BLOCO RESTAURADO: SOBRE */}
+                                    {activeTab === 'about' && (
+                                        <div className="bg-white p-6 md:p-20 rounded-[3rem] md:rounded-[4.5rem] shadow-xl border border-slate-100 page-enter">
+                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-24 items-center">
+                                                <div className="space-y-12">
+                                                    <div className="space-y-6">
+                                                        <span className="text-yellow-600 font-black uppercase tracking-[0.4em] text-[11px]">A Nossa Essência</span>
+                                                        <h2 className="text-4xl md:text-7xl font-black text-slate-900 font-outfit uppercase tracking-tighter leading-none">Mais do que culinária,<br/><span className="text-purple-600">um laboratório de vida.</span></h2>
+                                                    </div>
+                                                    <p className="text-slate-500 text-lg md:text-2xl font-light leading-relaxed">Na <strong>Academia Makena Space</strong>, acreditamos que a cozinha é o ambiente perfeito para moldar o futuro. Transformamos ingredientes em pratos deliciosos e desafios em competências vitais para as nossas crianças e jovens.</p>
+                                                    <div className="grid md:grid-cols-2 gap-8 pt-6">
+                                                        <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 hover:shadow-md transition-shadow group">
+                                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-purple-600 mb-6 shadow-sm group-hover:scale-110 transition-transform"><Icon name="Star" size={24}/></div>
+                                                            <h4 className="font-black uppercase text-xs tracking-widest text-slate-900 mb-2">Missão</h4>
+                                                            <p className="text-slate-500 text-xs leading-relaxed">Desenvolver competências comportamentais, autonomia e inteligência emocional através da arte gastronómica.</p>
+                                                        </div>
+                                                        <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 hover:shadow-md transition-shadow group">
+                                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-yellow-600 mb-6 shadow-sm group-hover:scale-110 transition-transform"><Icon name="CheckCircle2" size={24}/></div>
+                                                            <h4 className="font-black uppercase text-xs tracking-widest text-slate-900 mb-2">Visão</h4>
+                                                            <p className="text-slate-500 text-xs leading-relaxed">Ser a referência na formação integral de excelência em Angola, unindo educação prática, rigor e nutrição saudável.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="relative">
+                                                    <div className="absolute -inset-6 md:-inset-10 bg-yellow-500 rounded-[4rem] rotate-3 opacity-20 scale-105"></div>
+                                                    <FallbackImage src="https://raw.githubusercontent.com/MakenaMS/imagem/057229dc310541b89863af0b295f3858adc95838/A%20Nossa%20Ess%C3%AAncia.png" className="relative rounded-[3rem] md:rounded-[4rem] shadow-2xl w-full h-[600px] object-cover border-8 border-white" alt="Essência Makena" />
+                                                    <div className="absolute -bottom-6 -left-6 md:-left-12 bg-white p-6 rounded-3xl shadow-2xl border border-slate-50 no-print hover:scale-105 transition-transform">
+                                                        <div className="font-black text-purple-900 text-3xl font-outfit leading-none">100%</div>
+                                                        <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Educação Prática</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'diary' && (
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 md:gap-16">
+                                            <div className="lg:col-span-2 bg-white p-8 md:p-16 rounded-[3.5rem] md:rounded-[4.5rem] shadow-xl border border-slate-100 page-enter">
+                                                <h2 className="text-4xl md:text-5xl font-black text-slate-900 font-outfit uppercase tracking-tighter mb-12 flex items-center gap-6">
+                                                    <div className="bg-green-100 p-5 rounded-[2rem] text-green-600"><Icon name="Plus" size={32}/></div> Diário
+                                                </h2>
+                                                <div className="space-y-10">
+                                                    <div className="space-y-3">
+                                                        <label className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 ml-8">Título da Memória</label>
+                                                        <input type="text" className="w-full p-6 md:p-8 bg-slate-50 rounded-[2.5rem] border-2 border-transparent focus:border-purple-200 outline-none font-black text-xl shadow-inner focus:bg-white transition-all" value={newNote.title} onChange={e => setNewNote({...newNote, title: e.target.value})} />
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        <label className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 ml-8">Conteúdo</label>
+                                                        <textarea className="w-full p-6 md:p-8 bg-slate-50 rounded-[2.5rem] border-2 border-transparent focus:border-purple-200 outline-none h-64 md:h-80 resize-none text-lg leading-relaxed shadow-inner focus:bg-white transition-all font-light" value={newNote.content} onChange={e => setNewNote({...newNote, content: e.target.value})}></textarea>
+                                                    </div>
+                                                    <button onClick={saveNote} className="w-full bg-slate-950 text-white py-6 md:py-8 rounded-[3rem] font-black uppercase tracking-[0.5em] text-xs flex items-center justify-center gap-6 hover:bg-purple-800 transition-all shadow-2xl">
+                                                        <Icon name="Save" size={24}/> Guardar Localmente
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-8">
+                                                <h3 className="font-black text-slate-950 uppercase text-[10px] tracking-[0.6em] px-8 flex items-center gap-4">
+                                                    <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse shadow-[0_0_10px_#D4AF37]"></div> Histórico Offline
+                                                </h3>
+                                                
+                                                {/* BLOCO RESTAURADO: BOTÕES DE SOBERANIA (EXPORT/IMPORT) */}
+                                                <div className="flex gap-4 px-2">
+                                                    <button onClick={exportData} title="Exportar Memórias (Backup)" className="flex-1 bg-white border border-slate-200 p-4 rounded-2xl flex justify-center items-center text-slate-600 hover:text-purple-700 hover:bg-purple-50 transition-colors"><Icon name="Download" size={20} /></button>
+                                                    <input type="file" accept=".json" ref={fileInputRef} onChange={importData} className="hidden" />
+                                                    <button onClick={() => fileInputRef.current.click()} title="Importar Memórias (Restaurar)" className="flex-1 bg-white border border-slate-200 p-4 rounded-2xl flex justify-center items-center text-slate-600 hover:text-green-700 hover:bg-green-50 transition-colors"><Icon name="Upload" size={20} /></button>
+                                                </div>
+
+                                                <div className="space-y-6 max-h-[700px] overflow-y-auto pr-2 custom-scrollbar">
+                                                    {notes.map(n => (
+                                                        <div key={n.id} className="bg-white p-8 md:p-10 rounded-[3rem] shadow-sm border border-slate-100 group relative hover:border-purple-400 hover:shadow-2xl transition-all duration-500">
+                                                            <h4 className="font-black text-slate-900 text-xl uppercase tracking-tighter mb-4">{n.title}</h4>
+                                                            <p className="text-slate-500 leading-relaxed text-base italic opacity-80 font-light whitespace-pre-wrap">{n.content}</p>
+                                                            <button onClick={() => setNotes(notes.filter(x => x.id !== n.id))} className="absolute top-8 right-8 text-red-200 opacity-0 group-hover:opacity-100 transition-all hover:text-red-600"><Icon name="Trash2" size={24}/></button>
+                                                        </div>
+                                                    ))}
+                                                    {notes.length === 0 && <div className="p-16 text-center text-slate-300 italic border-4 border-dashed border-slate-50 rounded-[3rem] text-sm">Nenhuma memória registada no diário.</div>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Rodapé Online */}
+                        <footer className="bg-slate-900 text-white pt-12 pb-8 rounded-t-[3rem] mt-auto no-print">
+                            <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+                                <div className="space-y-4">
+                                    <h3 className="text-xl font-black font-outfit uppercase tracking-wider text-yellow-500">Makena Space</h3>
+                                    <p className="text-slate-400 text-sm leading-relaxed">Laboratório de vida e sabor. Desenvolvendo o futuro de Angola através da culinária infantil.</p>
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-xs uppercase tracking-[0.2em] text-slate-500 mb-6">Navegação</h4>
+                                    <ul className="space-y-3 text-sm text-slate-300">
+                                        <li className="cursor-pointer hover:text-yellow-500 transition-colors" onClick={() => setActiveTab('dashboard')}>Dashboard</li>
+                                        <li className="cursor-pointer hover:text-yellow-500 transition-colors" onClick={() => setActiveTab('recipes')}>Receitas</li>
+                                        <li className="cursor-pointer hover:text-yellow-500 transition-colors" onClick={() => setActiveTab('about')}>Sobre Nós</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-xs uppercase tracking-[0.2em] text-slate-500 mb-6">Redes</h4>
+                                    <div className="flex flex-col gap-3">
+                                        <a href="https://www.facebook.com/makenaspace" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-300 hover:text-yellow-500 transition-colors"><Icon name="Facebook" size={18}/> Facebook</a>
+                                        <a href="https://www.instagram.com/makenaspace21/" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-300 hover:text-yellow-500 transition-colors"><Icon name="Instagram" size={18}/> Instagram</a>
+                                        <a href="https://makenaspace.netlify.app/" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-300 hover:text-yellow-500 transition-colors"><Icon name="Globe" size={18}/> Website</a>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-xs uppercase tracking-[0.2em] text-slate-500 mb-6">Contacto</h4>
+                                    <div className="bg-green-600/10 border border-green-600/20 p-4 rounded-2xl flex items-center gap-3">
+                                        <Icon name="Whatsapp" size={20} className="text-green-500" />
+                                        <span className="text-xs font-black uppercase tracking-widest text-green-500">WhatsApp</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </footer>
+                    </main>
+
+                    {isSpeaking && (
+                        <div className="fixed top-6 right-6 md:bottom-12 md:top-auto bg-slate-950 text-white px-8 py-5 rounded-full flex items-center gap-6 animate-bounce shadow-2xl z-[200] border-2 border-yellow-500 backdrop-blur-2xl">
+                            <div className="flex gap-2 items-end h-6">{[1,2,3,4].map(i => <div key={i} className={`w-1.5 bg-yellow-400 rounded-full animate-pulse h-${(i*3)%10 + 4}`}></div>)}</div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.4em]">KÓDEX Voice Active</span>
+                            <button onClick={stopSpeech} className="p-2 bg-red-600 rounded-full hover:bg-red-700 transition-all shadow-xl"><Icon name="VolumeX" size={18}/></button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
